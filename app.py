@@ -5,27 +5,64 @@ import copy
 
 app = Flask(__name__)
 
-DATA_FILE = "data.json"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_FILE = os.path.join(BASE_DIR, "data.json")
 
+# =========================
+# 初期データ
+# =========================
 default_data = {
     "menu": {
-        "定番串": [
-            {"name": "もも", "price": 150},
-            {"name": "ねぎま", "price": 170}
+        "焼き鳥": [
+            {"name": "皮（タレ）", "price": 120}, {"name": "皮（塩）", "price": 120},
+            {"name": "レバー（タレ）", "price": 150}, {"name": "レバー（塩）", "price": 150},
+            {"name": "四つ身モモ（タレ）", "price": 150}, {"name": "四つ身モモ（塩）", "price": 150},
+            {"name": "砂ズリ", "price": 150}, {"name": "豚バラ", "price": 180},
+            {"name": "ささみ（うめ）", "price": 200}, {"name": "ささみ（わさび）", "price": 200},
+            {"name": "つくね（タレ）", "price": 150}, {"name": "つくね（塩）", "price": 150},
+            {"name": "なんこつつくね", "price": 200}, {"name": "ウインナー", "price": 180},
+            {"name": "ピリ辛ウインナー", "price": 180}, {"name": "チーズ巻", "price": 220},
+            {"name": "うずら巻", "price": 220}, {"name": "梅しそ巻", "price": 220},
+            {"name": "手羽先", "price": 200}, {"name": "丸腸", "price": 350},
+            {"name": "サガリ", "price": 350}, {"name": "しいたけ", "price": 180},
+            {"name": "ネギ", "price": 150}, {"name": "ピーマン", "price": 150}
         ],
-        "人気串": [
-            {"name": "つくね", "price": 180},
-            {"name": "かわ", "price": 160}
+        "刺身": [
+            {"name": "鳥刺し", "price": 880},
+            {"name": "馬刺し", "price": 1680},
+            {"name": "馬レバー刺し", "price": 1680}
+        ],
+        "一品料理": [
+            {"name": "鶏からあげ", "price": 700}, {"name": "だし巻きたまご", "price": 600},
+            {"name": "たこ唐揚げ", "price": 650}, {"name": "ゲソ唐揚げ", "price": 650},
+            {"name": "ホルモン鉄板", "price": 900}, {"name": "ポテトフライ", "price": 550},
+            {"name": "とり皮ぎょうざ", "price": 650}, {"name": "チーズフライ", "price": 450},
+            {"name": "枝豆", "price": 350}, {"name": "冷奴", "price": 400},
+            {"name": "板わさ", "price": 400}, {"name": "チャンジャ", "price": 400},
+            {"name": "たこわさ", "price": 400}, {"name": "漬物盛り合わせ", "price": 400}
+        ],
+        "ご飯もの": [
+            {"name": "お茶漬け（のり）", "price": 550},
+            {"name": "お茶漬け（梅）", "price": 550},
+            {"name": "お茶漬け（しゃけ）", "price": 550},
+            {"name": "おにぎり", "price": 180},
+            {"name": "焼おにぎり", "price": 250},
+            {"name": "白ごはん", "price": 300}
         ]
     },
     "people": {}
 }
 
-
+# =========================
+# データ処理
+# =========================
 def load_data():
     if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
+        try:
+            with open(DATA_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except:
+            return copy.deepcopy(default_data)
     return copy.deepcopy(default_data)
 
 
@@ -33,60 +70,23 @@ def save_data(data):
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-
 # =========================
-# 共通CSS
+# UI
 # =========================
 BASE_STYLE = """
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
 <style>
-body {
-    font-family: sans-serif;
-    background:#1f1510;
-    color:#fff;
-    margin:0;
-    padding:14px;
-    font-size:18px;
-}
-
-h2 { font-size:24px; }
-h3 { font-size:20px; }
-
-.card {
-    background:#2c1c14;
-    padding:14px;
-    margin:10px 0;
-    border-radius:12px;
-}
-
-.btn {
-    display:inline-block;
-    padding:12px 16px;
-    border-radius:10px;
-    text-decoration:none;
-    font-size:18px;
-}
-
-.btn-yellow { background:#d79b3d; color:#000; }
+body { font-family:sans-serif; background:#1f1510; color:#fff; margin:0; padding:14px; font-size:18px; }
+h2 { border-bottom:2px solid #d79b3d; padding-bottom:5px; }
+h3 { color:#d79b3d; margin-top:20px; }
+.card { background:#2c1c14; padding:14px; margin:10px 0; border-radius:12px; }
+.btn { padding:12px 16px; border-radius:10px; display:inline-block; text-decoration:none; text-align:center; }
+.btn-yellow { background:#d79b3d; color:#000; font-weight:bold; }
 .btn-gray { background:#444; color:#fff; }
-
-input {
-    width:100%;
-    padding:12px;
-    font-size:18px;
-    margin:6px 0;
-    border-radius:8px;
-    border:none;
-}
-
-.small-btn {
-    padding:10px 14px;
-    font-size:18px;
-}
+.small-btn { padding:8px 14px; background:#d79b3d; border:none; border-radius:8px; font-size:18px; }
+.qty { margin:0 12px; font-weight:bold; font-size:20px; }
 </style>
 """
-
 
 # =========================
 # トップ
@@ -94,43 +94,32 @@ input {
 @app.route("/")
 def index():
     data = load_data()
+    people = ""
 
-    people_html = ""
     for p in data["people"]:
-        people_html += f"""
-        <a class="btn btn-yellow" href="/order?person={p}">
-            {p}
-        </a>
-        """
+        mark = " ✔" if data["people"][p].get("confirmed") else ""
+        people += f'<a class="btn btn-yellow" href="/order?person={p}">{p}{mark}</a> '
 
     return f"""
-    <html><head>{BASE_STYLE}</head>
-    <body>
-
-    <h2>🍢 焼き鳥注文</h2>
+    <html><head>{BASE_STYLE}</head><body>
+    <h2>🍢 家族注文</h2>
 
     <form action="/enter">
-        <input name="person" placeholder="名前入力">
-        <button class="btn btn-yellow">入室</button>
+        <input name="person" placeholder="名前">
+        <button class="btn btn-yellow" style="width:100%;">入室</button>
     </form>
 
-    <h3>参加者</h3>
-    <div>{people_html}</div>
+    <h3>メンバー</h3>
+    {people if people else "なし"}
 
-    <hr>
-
-    <a class="btn btn-yellow" href="/menu_admin">🍢 メニュー管理</a>
-    <a class="btn btn-gray" href="/summary">📊 集計</a>
-
+    <br><br>
+    <a class="btn btn-gray" href="/summary">集計</a>
     </body></html>
     """
 
-
 @app.route("/enter")
 def enter():
-    person = request.args.get("person")
-    return redirect(f"/order?person={person}")
-
+    return redirect(f"/order?person={request.args.get('person')}")
 
 # =========================
 # 注文
@@ -139,197 +128,99 @@ def enter():
 def order():
     data = load_data()
     person = request.args.get("person")
+    if not person:
+        return redirect("/")
 
     if person not in data["people"]:
-        data["people"][person] = {"order": {}}
+        data["people"][person] = {"order": {}, "confirmed": False}
         save_data(data)
 
-    order = data["people"][person]["order"]
+    info = data["people"][person]
+    order = info["order"]
+    confirmed = info["confirmed"]
 
-    html = f"""
-    <html><head>{BASE_STYLE}</head>
-    <body>
+    html = f"<html><head>{BASE_STYLE}</head><body>"
+    html += f"<h2>{person}</h2>"
 
-    <h2>👤 {person}</h2>
-    """
+    if confirmed:
+        html += "<div class='card'>✔ 確定済み</div>"
 
     for cat, items in data["menu"].items():
-        html += f"<h3>🍢 {cat}</h3>"
-
+        html += f"<h3>{cat}</h3>"
         for i in items:
             qty = order.get(i["name"], 0)
 
             html += f"""
             <div class="card">
-                <div style="display:flex;justify-content:space-between;">
+                <div style="display:flex; justify-content:space-between;">
+                    <div>{i['name']}<br>¥{i['price']}</div>
                     <div>
-                        <div style="font-size:20px;">{i['name']}</div>
-                        <div style="opacity:0.8;">¥{i['price']}</div>
-                    </div>
-
-                    <div>
-                        <button class="small-btn"
-                            onclick="updateQty('{person}','{i['name']}','add')">＋</button>
-
-                        <span style="margin:0 10px;">{qty}</span>
-
-                        <button class="small-btn"
-                            onclick="updateQty('{person}','{i['name']}','remove')">−</button>
+                        <button class="small-btn" onclick="upd('{person}','{i['name']}','remove')" {'disabled' if confirmed else ''}>−</button>
+                        <span class="qty">{qty}</span>
+                        <button class="small-btn" onclick="upd('{person}','{i['name']}','add')" {'disabled' if confirmed else ''}>＋</button>
                     </div>
                 </div>
             </div>
             """
 
     html += f"""
-    <a class="btn btn-yellow" href="/confirm?person={person}">注文確定</a>
-
-    <br><br>
-    <a href="/">←戻る</a>
+    <a class="btn btn-yellow" href="/toggle_confirm?person={person}" style="width:100%;">
+        {'解除' if confirmed else '確定'}
+    </a>
 
     <script>
-    function updateQty(person,item,action){{
-        fetch(`/${{action}}?person=${{person}}&item=${{item}}`)
-            .then(()=>location.reload());
+    function upd(p,i,a){{
+        fetch(`/${{a}}?person=${{p}}&item=${{i}}`)
+        .then(()=>location.reload());
     }}
     </script>
-
     </body></html>
     """
-
     return html
 
-
+# =========================
+# 追加・削除
+# =========================
 @app.route("/add")
 def add():
     data = load_data()
-    person = request.args.get("person")
-    item = request.args.get("item")
+    p, i = request.args.get("person"), request.args.get("item")
 
-    data["people"][person]["order"][item] = data["people"][person]["order"].get(item, 0) + 1
-    save_data(data)
+    if p and i and not data["people"][p]["confirmed"]:
+        o = data["people"][p]["order"]
+        o[i] = o.get(i, 0) + 1
+        save_data(data)
+
     return jsonify({"ok": True})
 
 
 @app.route("/remove")
 def remove():
     data = load_data()
-    person = request.args.get("person")
-    item = request.args.get("item")
+    p, i = request.args.get("person"), request.args.get("item")
 
-    if item in data["people"][person]["order"]:
-        data["people"][person]["order"][item] = max(0, data["people"][person]["order"][item] - 1)
+    if p and i and not data["people"][p]["confirmed"]:
+        o = data["people"][p]["order"]
+        if i in o:
+            if o[i] <= 1:
+                del o[i]
+            else:
+                o[i] -= 1
+            save_data(data)
 
-    save_data(data)
     return jsonify({"ok": True})
-
-
-@app.route("/confirm")
-def confirm():
-    data = load_data()
-    person = request.args.get("person")
-
-    data["people"][person]["confirmed"] = True
-    save_data(data)
-
-    return redirect("/summary")
-
 
 # =========================
-# メニュー管理
+# 確定
 # =========================
-@app.route("/menu_admin")
-def menu_admin():
+@app.route("/toggle_confirm")
+def toggle_confirm():
     data = load_data()
-
-    html = f"""
-    <html><head>{BASE_STYLE}</head>
-    <body>
-
-    <h2>🍢 メニュー管理</h2>
-
-    <div class="card">
-        <input id="cat" placeholder="カテゴリ">
-        <input id="name" placeholder="品名">
-        <input id="price" placeholder="値段">
-
-        <button class="btn btn-yellow" onclick="addMenu()">追加</button>
-    </div>
-    """
-
-    for cat, items in data["menu"].items():
-        html += f"<div class='card'><h3>{cat}</h3>"
-
-        for i in items:
-            html += f"""
-            <div style="display:flex;justify-content:space-between;margin:8px 0;">
-                <div>{i['name']} ¥{i['price']}</div>
-                <a href="#" style="color:red;"
-                   onclick="deleteMenu('{cat}','{i['name']}')">削除</a>
-            </div>
-            """
-
-        html += "</div>"
-
-    html += """
-    <br>
-    <a href="/">←戻る</a>
-
-    <script>
-    function addMenu(){
-        const cat = document.getElementById("cat").value;
-        const name = document.getElementById("name").value;
-        const price = document.getElementById("price").value;
-
-        fetch(`/add_menu?cat=${cat}&name=${name}&price=${price}`)
-            .then(()=>location.reload());
-    }
-
-    function deleteMenu(cat,name){
-        fetch(`/delete_menu?cat=${cat}&name=${name}`)
-            .then(()=>location.reload());
-    }
-    </script>
-
-    </body></html>
-    """
-
-    return html
-
-
-@app.route("/add_menu")
-def add_menu():
-    data = load_data()
-
-    cat = request.args.get("cat")
-    name = request.args.get("name")
-    price = request.args.get("price")
-
-    data["menu"].setdefault(cat, []).append({
-        "name": name,
-        "price": int(price)
-    })
-
-    save_data(data)
-    return jsonify({"ok": True})
-
-
-@app.route("/delete_menu")
-def delete_menu():
-    data = load_data()
-
-    cat = request.args.get("cat")
-    name = request.args.get("name")
-
-    data["menu"][cat] = [
-        i for i in data["menu"][cat] if i["name"] != name
-    ]
-
-    if len(data["menu"][cat]) == 0:
-        del data["menu"][cat]
-
-    save_data(data)
-    return jsonify({"ok": True})
-
+    p = request.args.get("person")
+    if p in data["people"]:
+        data["people"][p]["confirmed"] = not data["people"][p]["confirmed"]
+        save_data(data)
+    return redirect(f"/order?person={p}")
 
 # =========================
 # 集計
@@ -337,91 +228,33 @@ def delete_menu():
 @app.route("/summary")
 def summary():
     data = load_data()
+    price = {i["name"]: i["price"] for c in data["menu"].values() for i in c}
 
-    total = {}
-    total_price = 0
+    total = 0
+    html = ""
 
-    html = f"""
-    <html><head>{BASE_STYLE}</head>
-    <body>
+    for p, info in data["people"].items():
+        sub = 0
+        lines = ""
 
+        for i, q in info["order"].items():
+            if q > 0:
+                v = price.get(i, 0)
+                lines += f"<div>{i} × {q} = ¥{v*q}</div>"
+                sub += v * q
+
+        total += sub
+
+        html += f"<div class='card'><b>{p}</b>{lines}<hr>小計 ¥{sub}</div>"
+
+    return f"""
+    <html><head>{BASE_STYLE}</head><body>
     <h2>📊 集計</h2>
-
-    <div class="card">
-    <h3>全体</h3>
-    """
-
-    for person, info in data["people"].items():
-        for item_name, qty in info["order"].items():
-
-            price = 0
-            for cat, items in data["menu"].items():
-                for i in items:
-                    if i["name"] == item_name:
-                        price = i["price"]
-
-            total[item_name] = total.get(item_name, 0) + qty
-            total_price += price * qty
-
-    for item, qty in total.items():
-        html += f"<div>{item}: {qty}</div>"
-
-    html += f"""
-    <hr>
-    <h3>💰 合計 ¥{total_price}</h3>
-    </div>
-
-    <h3>👤 人別内訳</h3>
-    """
-
-    for person, info in data["people"].items():
-
-        person_total = 0
-
-        html += f"<div class='card'><h3>{person}</h3>"
-
-        for item_name, qty in info["order"].items():
-
-            price = 0
-            for cat, items in data["menu"].items():
-                for i in items:
-                    if i["name"] == item_name:
-                        price = i["price"]
-
-            person_total += price * qty
-
-            html += f"<div>{item_name}: {qty}（¥{price * qty}）</div>"
-
-        html += f"""
-        <b>小計 ¥{person_total}</b><br>
-        <a style="color:red;" href="/delete_person?person={person}">削除</a>
-        </div>
-        """
-
-    html += """
-    <br>
-    <a href="/">←戻る</a>
+    {html}
+    <h3>総計 ¥{total}</h3>
+    <a class="btn btn-gray" href="/">戻る</a>
     </body></html>
     """
 
-    return html
-
-
-@app.route("/delete_person")
-def delete_person():
-    data = load_data()
-    person = request.args.get("person")
-
-    if person in data["people"]:
-        del data["people"][person]
-
-    save_data(data)
-    return redirect("/summary")
-
-
-# =========================
-# Render対応起動
-# =========================
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=5000)
