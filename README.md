@@ -1,1 +1,0 @@
-# yakitori-app
