@@ -5,12 +5,11 @@ import copy
 
 app = Flask(__name__)
 
+# 保存ファイルのパス
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_FILE = os.path.join(BASE_DIR, "data.json")
 
-# =========================
-# 初期データ
-# =========================
+# 初期メニューデータ
 default_data = {
     "menu": {
         "焼き鳥": [
@@ -28,8 +27,7 @@ default_data = {
             {"name": "ネギ", "price": 150}, {"name": "ピーマン", "price": 150}
         ],
         "刺身": [
-            {"name": "鳥刺し", "price": 880},
-            {"name": "馬刺し", "price": 1680},
+            {"name": "鳥刺し", "price": 880}, {"name": "馬刺し", "price": 1680},
             {"name": "馬レバー刺し", "price": 1680}
         ],
         "一品料理": [
@@ -42,20 +40,14 @@ default_data = {
             {"name": "たこわさ", "price": 400}, {"name": "漬物盛り合わせ", "price": 400}
         ],
         "ご飯もの": [
-            {"name": "お茶漬け（のり）", "price": 550},
-            {"name": "お茶漬け（梅）", "price": 550},
-            {"name": "お茶漬け（しゃけ）", "price": 550},
-            {"name": "おにぎり", "price": 180},
-            {"name": "焼おにぎり", "price": 250},
-            {"name": "白ごはん", "price": 300}
+            {"name": "お茶漬け（のり）", "price": 550}, {"name": "お茶漬け（梅）", "price": 550},
+            {"name": "お茶漬け（しゃけ）", "price": 550}, {"name": "おにぎり", "price": 180},
+            {"name": "焼おにぎり", "price": 250}, {"name": "白ごはん", "price": 300}
         ]
     },
     "people": {}
 }
 
-# =========================
-# データ処理
-# =========================
 def load_data():
     if os.path.exists(DATA_FILE):
         try:
@@ -65,196 +57,211 @@ def load_data():
             return copy.deepcopy(default_data)
     return copy.deepcopy(default_data)
 
-
 def save_data(data):
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-# =========================
-# UI
-# =========================
+# スタイル
 BASE_STYLE = """
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-body { font-family:sans-serif; background:#1f1510; color:#fff; margin:0; padding:14px; font-size:18px; }
-h2 { border-bottom:2px solid #d79b3d; padding-bottom:5px; }
-h3 { color:#d79b3d; margin-top:20px; }
-.card { background:#2c1c14; padding:14px; margin:10px 0; border-radius:12px; }
-.btn { padding:12px 16px; border-radius:10px; display:inline-block; text-decoration:none; text-align:center; }
-.btn-yellow { background:#d79b3d; color:#000; font-weight:bold; }
+body { font-family: sans-serif; background:#1f1510; color:#fff; margin:0; padding:14px; font-size:18px; line-height:1.4; }
+h2 { font-size:24px; border-bottom:2px solid #d79b3d; padding-bottom:5px; margin-bottom:15px; }
+h3 { font-size:20px; color:#d79b3d; margin-top:20px; border-left: 4px solid #d79b3d; padding-left:10px; }
+.card { background:#2c1c14; padding:14px; margin:10px 0; border-radius:12px; border:1px solid #3d2b21; }
+.btn { display:inline-block; padding:14px 16px; border-radius:10px; text-decoration:none; font-size:18px; text-align:center; border:none; cursor:pointer; font-weight:bold; }
+.btn-yellow { background:#d79b3d; color:#000; }
+.btn-red { background:#dc3545; color:#fff; }
 .btn-gray { background:#444; color:#fff; }
-.small-btn { padding:8px 14px; background:#d79b3d; border:none; border-radius:8px; font-size:18px; }
-.qty { margin:0 12px; font-weight:bold; font-size:20px; }
+.btn-outline { background:transparent; border:1px solid #d79b3d; color:#d79b3d; }
+input { width:100%; padding:12px; font-size:16px; border-radius:8px; border:none; box-sizing:border-box; background:#3d2b21; color:#fff; }
+.small-btn { width:44px; height:44px; font-size:24px; border-radius:8px; border:none; background:#d79b3d; color:#000; font-weight:bold; display:flex; align-items:center; justify-content:center; }
+.qty-display { font-size:24px; font-weight:bold; margin:0 15px; min-width:35px; text-align:center; color:#d79b3d; }
+.footer-controls { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(31, 21, 16, 0.95); padding: 15px; box-sizing: border-box; border-top: 1px solid #3d2b21; z-index: 1000; display: flex; gap: 10px; }
+.footer-spacer { height: 120px; }
 </style>
 """
 
-# =========================
-# トップ
-# =========================
 @app.route("/")
 def index():
     data = load_data()
-    people = ""
-
-    for p in data["people"]:
-        mark = " ✔" if data["people"][p].get("confirmed") else ""
-        people += f'<a class="btn btn-yellow" href="/order?person={p}">{p}{mark}</a> '
-
+    people_html = "".join([f'<a class="btn btn-yellow" href="/order?person={p}" style="margin:5px;">{p}{" (確定)" if data["people"][p].get("confirmed") else ""}</a>' for p in data["people"]])
     return f"""
     <html><head>{BASE_STYLE}</head><body>
-    <h2>🍢 家族注文</h2>
-
-    <form action="/enter">
-        <input name="person" placeholder="名前">
-        <button class="btn btn-yellow" style="width:100%;">入室</button>
-    </form>
-
-    <h3>メンバー</h3>
-    {people if people else "なし"}
-
-    <br><br>
-    <a class="btn btn-gray" href="/summary">集計</a>
+    <h2>🍢 家族の焼き鳥注文</h2>
+    <form action="/enter"><input name="person" placeholder="名前を入力（例：お父さん）" required><button class="btn btn-yellow" style="width:100%; margin-top:5px;">入室</button></form>
+    <h3>参加メンバー</h3>
+    <div style="display:flex; flex-wrap:wrap;">{people_html if people_html else '<div style="opacity:0.6;">参加者がいません</div>'}</div>
+    <hr style="margin:30px 0; border:0; border-top:1px solid #444;">
+    <a class="btn btn-outline" href="/summary" style="width:100%; box-sizing:border-box;">📊 集計画面</a>
+    <br><br><a class="btn btn-gray" href="/menu_admin" style="width:100%; box-sizing:border-box; font-size:14px; opacity:0.6;">⚙️ メニュー編集</a>
     </body></html>
     """
 
 @app.route("/enter")
 def enter():
-    return redirect(f"/order?person={request.args.get('person')}")
+    person = request.args.get("person", "").strip()
+    if not person: return redirect("/")
+    return redirect(f"/order?person={person}")
 
-# =========================
-# 注文
-# =========================
 @app.route("/order")
 def order():
     data = load_data()
     person = request.args.get("person")
-    if not person:
-        return redirect("/")
-
+    if not person: return redirect("/")
     if person not in data["people"]:
         data["people"][person] = {"order": {}, "confirmed": False}
         save_data(data)
-
     info = data["people"][person]
-    order = info["order"]
-    confirmed = info["confirmed"]
+    order, confirmed = info["order"], info.get("confirmed", False)
+    price_map = {i["name"]: i["price"] for cat in data["menu"].values() for i in cat}
+    my_subtotal = sum(price_map.get(name, 0) * qty for name, qty in order.items())
 
     html = f"<html><head>{BASE_STYLE}</head><body>"
-    html += f"<h2>{person}</h2>"
-
-    if confirmed:
-        html += "<div class='card'>✔ 確定済み</div>"
-
+    html += f"<div style='position:sticky; top:0; z-index:900; background:#d79b3d; color:#000; padding:10px; border-radius:0 0 8px 8px; font-weight:bold; text-align:center;'>{person} 様の小計: ¥{my_subtotal}</div>"
+    
     for cat, items in data["menu"].items():
         html += f"<h3>{cat}</h3>"
         for i in items:
             qty = order.get(i["name"], 0)
-
-            html += f"""
-            <div class="card">
-                <div style="display:flex; justify-content:space-between;">
-                    <div>{i['name']}<br>¥{i['price']}</div>
-                    <div>
-                        <button class="small-btn" onclick="upd('{person}','{i['name']}','remove')" {'disabled' if confirmed else ''}>−</button>
-                        <span class="qty">{qty}</span>
-                        <button class="small-btn" onclick="upd('{person}','{i['name']}','add')" {'disabled' if confirmed else ''}>＋</button>
-                    </div>
-                </div>
-            </div>
-            """
+            html += f"""<div class="card"><div style="display:flex; justify-content:space-between; align-items:center;"><div><b>{i['name']}</b><br><small>¥{i['price']}</small></div><div style="display:flex; align-items:center;"><button class="small-btn" onclick="upd('{person}','{i['name']}','remove')" {'disabled' if confirmed else ''}>−</button><span class="qty-display">{qty}</span><button class="small-btn" onclick="upd('{person}','{i['name']}','add')" {'disabled' if confirmed else ''}>＋</button></div></div></div>"""
 
     html += f"""
-    <a class="btn btn-yellow" href="/toggle_confirm?person={person}" style="width:100%;">
-        {'解除' if confirmed else '確定'}
-    </a>
-
-    <script>
-    function upd(p,i,a){{
-        fetch(`/${{a}}?person=${{p}}&item=${{i}}`)
-        .then(()=>location.reload());
-    }}
-    </script>
+    <div class="footer-spacer"></div>
+    <div class="footer-controls">
+        <a class="btn btn-gray" href="/" style="flex: 1;">戻る</a>
+        <a class="btn {'btn-red' if confirmed else 'btn-yellow'}" href="/toggle_confirm?person={person}" style="flex: 2;">
+            {'⚠️ 確定解除' if confirmed else '🚀 注文を確定'}
+        </a>
+    </div>
+    <script>function upd(p, i, a){{ fetch(`/${{a}}?person=${{encodeURIComponent(p)}}&item=${{encodeURIComponent(i)}}`).then(()=>location.reload()); }}</script>
     </body></html>
     """
     return html
 
-# =========================
-# 追加・削除
-# =========================
+@app.route("/summary")
+def summary():
+    data = load_data()
+    price_map = {i["name"]: i["price"] for cat in data["menu"].values() for i in cat}
+    total_items, grand_total, people_cards = {}, 0, ""
+    for person, info in data["people"].items():
+        subtotal, lines = 0, ""
+        for item, qty in info["order"].items():
+            if qty > 0:
+                p = price_map.get(item, 0)
+                lines += f"<div style='display:flex; justify-content:space-between;'><span>{item} × {qty}</span><span>¥{p*qty}</span></div>"
+                total_items[item] = total_items.get(item, 0) + qty
+                subtotal += p * qty
+        if subtotal > 0:
+            people_cards += f'<div class="card"><div style="display:flex; justify-content:space-between; border-bottom:1px solid #444; margin-bottom:8px;"><strong>{person}</strong><a href="/delete_person?person={person}" style="color:#888; font-size:12px;">削除</a></div>{lines}<div style="text-align:right; color:#d79b3d; font-weight:bold;">小計 ¥{subtotal}</div></div>'
+            grand_total += subtotal
+    total_list = "".join([f"<div style='font-size:20px; border-bottom:1px solid #3d2b21; padding:8px 0;'><b style='color:#d79b3d; font-size:24px;'>{v}</b> × {k}</div>" for k,v in total_items.items()])
+    return f"<html><head>{BASE_STYLE}</head><body><h2>📊 集計結果</h2><div class='card'>{total_list if total_list else '注文なし'}<div style='text-align:right; font-size:28px; font-weight:bold; color:#d79b3d; margin-top:15px;'>総計 ¥{grand_total}</div></div><h3>内訳</h3>{people_cards}<br><a class='btn btn-gray' href='/' style='width:100%; box-sizing:border-box;'>戻る</a></body></html>"
+
+@app.route("/menu_admin")
+def menu_admin():
+    data = load_data()
+    menu_html = ""
+    for cat, items in data["menu"].items():
+        menu_html += f"<h3>{cat}</h3>"
+        for i in items:
+            menu_html += f"""
+            <div class="card" style="padding:10px;">
+                <form action="/update_menu_item" style="display:flex; align-items:center; gap:5px; margin:0;">
+                    <span style="flex:2; font-size:14px;">{i['name']}</span>
+                    <input type="hidden" name="cat" value="{cat}">
+                    <input type="hidden" name="old_name" value="{i['name']}">
+                    <input type="number" name="price" value="{i['price']}" style="flex:1; width:60px;">
+                    <button class="btn btn-yellow" style="padding:5px 10px; font-size:12px;">更</button>
+                    <a href="/del_menu_item?cat={cat}&name={i['name']}" class="btn btn-red" style="padding:5px 10px; font-size:12px;">消</a>
+                </form>
+            </div>"""
+    return f"""
+    <html><head>{BASE_STYLE}</head><body>
+    <h2>⚙️ メニュー編集</h2>
+    <div class="card">
+        <b>新メニュー追加</b>
+        <form action="/update_menu_item">
+            <input name="cat" placeholder="カテゴリ" required>
+            <input name="new_name" placeholder="品名" required>
+            <input name="price" type="number" placeholder="価格" required>
+            <button class="btn btn-yellow" style="width:100%; margin-top:5px;">追加</button>
+        </form>
+    </div>
+    {menu_html}
+    <br><a class="btn btn-gray" href="/" style="width:100%; box-sizing:border-box;">戻る</a>
+    </body></html>
+    """
+
+@app.route("/update_menu_item")
+def update_menu_item():
+    data = load_data()
+    cat, old_name, new_name = request.args.get("cat"), request.args.get("old_name"), request.args.get("new_name")
+    price = int(request.args.get("price", 0))
+    if cat not in data["menu"]: data["menu"][cat] = []
+    if old_name:
+        for i in data["menu"][cat]:
+            if i["name"] == old_name: i["price"] = price
+    elif new_name:
+        data["menu"][cat].append({"name": new_name, "price": price})
+    save_data(data)
+    return redirect("/menu_admin")
+
+@app.route("/del_menu_item")
+def del_menu_item():
+    data = load_data()
+    cat, name = request.args.get("cat"), request.args.get("name")
+    if cat in data["menu"]:
+        data["menu"][cat] = [i for i in data["menu"][cat] if i["name"] != name]
+        save_data(data)
+    return redirect("/menu_admin")
+
 @app.route("/add")
 def add():
     data = load_data()
     p, i = request.args.get("person"), request.args.get("item")
-
-    if p and i and not data["people"][p]["confirmed"]:
-        o = data["people"][p]["order"]
-        o[i] = o.get(i, 0) + 1
+    if p and i and not data["people"][p].get("confirmed"):
+        data["people"][p]["order"][i] = data["people"][p]["order"].get(i, 0) + 1
         save_data(data)
-
     return jsonify({"ok": True})
-
 
 @app.route("/remove")
 def remove():
     data = load_data()
     p, i = request.args.get("person"), request.args.get("item")
-
-    if p and i and not data["people"][p]["confirmed"]:
-        o = data["people"][p]["order"]
-        if i in o:
-            if o[i] <= 1:
-                del o[i]
-            else:
-                o[i] -= 1
+    if p and i and not data["people"][p].get("confirmed"):
+        order = data["people"][p]["order"]
+        if i in order:
+            if order[i] <= 1: del order[i]
+            else: order[i] -= 1
             save_data(data)
-
     return jsonify({"ok": True})
 
-# =========================
-# 確定
-# =========================
 @app.route("/toggle_confirm")
 def toggle_confirm():
     data = load_data()
     p = request.args.get("person")
     if p in data["people"]:
-        data["people"][p]["confirmed"] = not data["people"][p]["confirmed"]
+        # 状態を反転
+        is_confirmed = not data["people"][p].get("confirmed", False)
+        data["people"][p]["confirmed"] = is_confirmed
         save_data(data)
-    return redirect(f"/order?person={p}")
+        
+        # 確定した場合は集計画面へ、解除した場合は注文画面に戻る
+        if is_confirmed:
+            return redirect("/summary")
+        else:
+            return redirect(f"/order?person={p}")
+    return redirect("/")
 
-# =========================
-# 集計
-# =========================
-@app.route("/summary")
-def summary():
+@app.route("/delete_person")
+def delete_person():
     data = load_data()
-    price = {i["name"]: i["price"] for c in data["menu"].values() for i in c}
-
-    total = 0
-    html = ""
-
-    for p, info in data["people"].items():
-        sub = 0
-        lines = ""
-
-        for i, q in info["order"].items():
-            if q > 0:
-                v = price.get(i, 0)
-                lines += f"<div>{i} × {q} = ¥{v*q}</div>"
-                sub += v * q
-
-        total += sub
-
-        html += f"<div class='card'><b>{p}</b>{lines}<hr>小計 ¥{sub}</div>"
-
-    return f"""
-    <html><head>{BASE_STYLE}</head><body>
-    <h2>📊 集計</h2>
-    {html}
-    <h3>総計 ¥{total}</h3>
-    <a class="btn btn-gray" href="/">戻る</a>
-    </body></html>
-    """
+    p = request.args.get("person")
+    if p in data["people"]:
+        del data["people"][p]
+        save_data(data)
+    return redirect("/summary")
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
